@@ -52,37 +52,45 @@ function getTemplate(singleComment: string, timeStamp:string) : string {
     return template.trim();
 }
 
-function createHeader() {
+function getCommentTokens() : string {
     const editor = vscode.window.activeTextEditor; 
     //if no editor do nothing
     if (!editor) {
         return;
     }
 
-    let timeStamp: string = createTimeStamp(new Date());
     let doc = editor.document;
     if (doc.languageId === "python")
     {
-        editor.edit(function (editBuilder) {
-            try {
-                editBuilder.insert(new vscode.Position(0, 0), getTemplate("#", timeStamp));
-            } catch (error) {
-                console.error(error);
-            }
-        });
+        return "#";      
+    }
+    else if(doc.languageId === "typescript" || doc.languageId === "cpp") {
+        return "//";
     }
     else if(doc.languageId === "plaintext") {
-        editor.edit(function (editBuilder) {
-            try {
-                editBuilder.insert(new vscode.Position(0, 0), getTemplate("", timeStamp));
-            } catch (error) {
-                console.error(error);
-            }
-        });
+        return "";
     }
     else {
         console.log('I dont know what this document is.');
     }
+
+    return "";
+}
+
+function createHeader() {
+    let timeStamp: string = createTimeStamp(new Date());
+    const editor = vscode.window.activeTextEditor; 
+    //if no editor do nothing
+    if (!editor) {
+        return;
+    }
+    editor.edit(function (editBuilder) {
+        try {
+            editBuilder.insert(new vscode.Position(0, 0), getTemplate(getCommentTokens(), timeStamp));
+        } catch (error) {
+            console.error(error);
+        }
+    });    
 }
 
 // this method is called when your extension is activated
@@ -128,7 +136,7 @@ export function activate(context: vscode.ExtensionContext) {
                     //replace the text and save the file again
                     setTimeout(function () {
                         editor.edit(function (edit) {
-                            edit.replace(lastRange, "Last Modified: " + createTimeStamp(new Date()));
+                            edit.replace(lastRange, getCommentTokens()+"Last Modified: " + createTimeStamp(new Date()));
                         });
                         document.save();
                     }, 200);
