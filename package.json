@@ -1,8 +1,8 @@
 {
-    "name": "updatetimestamp",
-    "displayName": "UpdateTimeStamp",
+    "name": "boilerplateheader",
+    "displayName": "BoilerPlateHeader",
     "description": "Automatically update a timestamp in code on file save.",
-    "version": "0.0.1",
+    "version": "0.1.0",
     "publisher": "nathangilbert",
     "engines": {
         "vscode": "^1.5.0"
@@ -17,7 +17,7 @@
     "contributes": {
         "commands": [{
             "command": "extension.updateHeader",
-            "title": "UpdateTimeStamp"
+            "title": "UpdateHeader"
         }]
     },
     "scripts": {

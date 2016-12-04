@@ -37,46 +37,23 @@ function createTimeStamp(date: Date): string {
     return timestamp.join(" ");
 }
 
+function getConfiguration() {
+    const userName = vscode.workspace.getConfiguration('boilerplateheader').get('username');
+    return userName;
+}
+
 //look here for more examples: https://github.com/zhaopengme/vscode-fileheader/blob/master/extension.js
 //and here: https://github.com/jsynowiec/vscode-insertdatestring/blob/master/src/extension.js
-function getLineText(lineNum, editor) : string {
-    const document = editor.document;
-    if (lineNum >= document.lineCount) {
-        return '';
-    }
-
-    const start = new vscode.Position(lineNum, 0);
-    const lastLine = document.lineAt(lineNum);
-    const end = new vscode.Position(lineNum, lastLine.text.length);
-    const range = new vscode.Range(start, end);
-    var text = document.getText(range);
-    return text;
-}
-
-function replaceLineText(lineNum, text, editor) {
-    const document = editor.document;
-    if (lineNum >= document.lineCount) {
-        return '';
-    }
-
-    const start = new vscode.Position(lineNum, 0);
-    const lastLine = document.lineAt(lineNum);
-    const end = new vscode.Position(lineNum, lastLine.text.length);
-    const range = new vscode.Range(start, end);
-    editor.edit(function (edit) {
-        edit.replace(range, text);
-    });
-}
-
+//Microsoft docs: https://code.visualstudio.com/Docs/extensions/example-hello-world
 function getTemplate(singleComment: string, timeStamp:string) : string {
     let template: string = "";
-    template += singleComment + " Author: Nathan Alan Gilbert" + "\n";
+    template += singleComment + " Author: " + getConfiguration() + "\n";
     template += singleComment + " Last Modified: " + timeStamp + "\n";
     return template;
 }
 
 function createHeader() {
-    const editor = vscode.editor || vscode.window.activeTextEditor; 
+    const editor = vscode.window.activeTextEditor; 
     //if no editor do nothing
     if (!editor) {
         return;
@@ -130,13 +107,13 @@ export function activate(context: vscode.ExtensionContext) {
     vscode.workspace.onDidSaveTextDocument(function (file) {
         setTimeout(function () {
             try {
-                const editor = vscode.editor || vscode.window.activeTextEditor; 
+                const editor = vscode.window.activeTextEditor; 
                 let document = editor.document;
 
                 //find the old timeStamp
                 let lastRange = document.lineAt(0).range;
                 let updateFile:boolean = false;
-                for (let i:integer = 0; i < document.lineCount; i++) {
+                for (let i = 0; i < document.lineCount; i++) {
                     let linetAt = document.lineAt(i);
                     let line:string = linetAt.text;
                     line = line.trim();
