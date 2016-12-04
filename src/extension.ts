@@ -47,9 +47,9 @@ function getConfiguration() {
 //Microsoft docs: https://code.visualstudio.com/Docs/extensions/example-hello-world
 function getTemplate(singleComment: string, timeStamp:string) : string {
     let template: string = "";
-    template += singleComment + " Author: " + getConfiguration() + "\n";
-    template += singleComment + " Last Modified: " + timeStamp + "\n";
-    return template;
+    template += singleComment + "Author: " + getConfiguration() + "\n";
+    template += singleComment + "Last Modified: " + timeStamp + "\n";
+    return template.trim();
 }
 
 function createHeader() {
