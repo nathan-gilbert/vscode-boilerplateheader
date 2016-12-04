@@ -37,8 +37,39 @@ function createTimeStamp(date: Date): string {
     return timestamp.join(" ");
 }
 
-function updateEditorTimeStamp(text: string) {
-    const editor = vscode.window.activeTextEditor;
+//look here for more examples: https://github.com/zhaopengme/vscode-fileheader/blob/master/extension.js
+//and here: https://github.com/jsynowiec/vscode-insertdatestring/blob/master/src/extension.js
+function getLineText(lineNum, editor) : string {
+    const document = editor.document;
+    if (lineNum >= document.lineCount) {
+        return '';
+    }
+
+    const start = new vscode.Position(lineNum, 0);
+    const lastLine = document.lineAt(lineNum);
+    const end = new vscode.Position(lineNum, lastLine.text.length);
+    const range = new vscode.Range(start, end);
+    var text = document.getText(range);
+    return text;
+}
+
+function replaceLineText(lineNum, text, editor) {
+    const document = editor.document;
+    if (lineNum >= document.lineCount) {
+        return '';
+    }
+
+    const start = new vscode.Position(lineNum, 0);
+    const lastLine = document.lineAt(lineNum);
+    const end = new vscode.Position(lineNum, lastLine.text.length);
+    const range = new vscode.Range(start, end);
+    editor.edit(function (edit) {
+        edit.replace(range, text);
+    });
+}
+
+function updateEditorTimeStamp(timeStamp: string) {
+    const editor = vscode.editor || vscode.window.activeTextEditor; 
     //if no editor do nothing
     if (!editor) {
         return;
@@ -51,14 +82,13 @@ function updateEditorTimeStamp(text: string) {
         console.log('This is a python document');
     }
     else if(doc.languageId === "plaintext") {
-        if (doc.lineCount > 2)
-        {
-            let firstLine = doc.lineAt(0);
-            let endLine = doc.lineAt(2);
-        }
-        else {
-            console.log('Not enough lines in file.');
-        }
+        editor.edit(function (editBuilder) {
+            try {
+                editBuilder.insert(new vscode.Position(0, 0), timeStamp);
+            } catch (error) {
+                console.error(error);
+            }
+        });
     }
     else {
         console.log('I dont know what this document is.');
@@ -84,8 +114,38 @@ export function activate(context: vscode.ExtensionContext) {
     ];
 
     context.subscriptions.push(disposable);
+
+    vscode.workspace.onDidSaveTextDocument(function (file) {
+        setTimeout(function () {
+            try {
+                //find the old timeStamp
+                for (let i:integer = 0; i < document.lineCount; i++) {
+                    let linetAt:string = document.lineAt(i);
+                    let line:string = linetAt.text;
+                    line = line.trim();
+                    let range = linetAt.range;
+                    if (line.indexOf('Last\ Modified:') > -1) {
+                        break;
+                    }
+                }
+
+                //replace the text and save the file again
+                setTimeout(function () {
+                    editor.edit(function (edit) {
+                        edit.replace(lastTimeRange, "Last Modified: " + createTimeStamp(new Date()));
+                    });
+                    document.save();
+                }, 200);
+            }
+            catch(error)
+            {
+                console.error(error);
+            }
+        }, 200);
+
+    }
 }
 
-// this method is called when your extension is deactivated
+// this }, 199 is called when your extension is deactivated
 export function deactivate() {
 }
