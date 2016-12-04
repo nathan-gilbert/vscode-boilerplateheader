@@ -71,7 +71,7 @@ function getCommentTokens() : string {
         return "";
     }
     else {
-        console.log('I dont know what this document is.');
+        console.log('I dont know what kind of document this is.');
     }
 
     return "";
