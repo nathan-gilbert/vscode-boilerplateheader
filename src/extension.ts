@@ -68,23 +68,36 @@ function replaceLineText(lineNum, text, editor) {
     });
 }
 
-function updateEditorTimeStamp(timeStamp: string) {
+function getTemplate(singleComment: string, timeStamp:string) : string {
+    let template: string = "";
+    template += singleComment + " Author: Nathan Alan Gilbert" + "\n";
+    template += singleComment + " Last Modified: " + timeStamp + "\n";
+    return template;
+}
+
+function createHeader() {
     const editor = vscode.editor || vscode.window.activeTextEditor; 
     //if no editor do nothing
     if (!editor) {
         return;
     }
 
+    let timeStamp: string = createTimeStamp(new Date());
     let doc = editor.document;
     if (doc.languageId === "python")
     {
-        // This line of code will only be executed once when your extension is activated
-        console.log('This is a python document');
+        editor.edit(function (editBuilder) {
+            try {
+                editBuilder.insert(new vscode.Position(0, 0), getTemplate("#", timeStamp));
+            } catch (error) {
+                console.error(error);
+            }
+        });
     }
     else if(doc.languageId === "plaintext") {
         editor.edit(function (editBuilder) {
             try {
-                editBuilder.insert(new vscode.Position(0, 0), timeStamp);
+                editBuilder.insert(new vscode.Position(0, 0), getTemplate("", timeStamp));
             } catch (error) {
                 console.error(error);
             }
@@ -107,9 +120,8 @@ export function activate(context: vscode.ExtensionContext) {
     // Now provide the implementation of the command with  registerCommand
     // The commandId parameter must match the command field in package.json
     let disposable = [
-        vscode.commands.registerCommand('extension.updateTimeStamp', () => {
-            let timeStamp: string = createTimeStamp(new Date());
-            updateEditorTimeStamp(timeStamp);
+        vscode.commands.registerCommand('extension.updateHeader', () => {
+            createHeader();
         })
     ];
 
@@ -118,34 +130,44 @@ export function activate(context: vscode.ExtensionContext) {
     vscode.workspace.onDidSaveTextDocument(function (file) {
         setTimeout(function () {
             try {
+                const editor = vscode.editor || vscode.window.activeTextEditor; 
+                let document = editor.document;
+
                 //find the old timeStamp
+                let lastRange = document.lineAt(0).range;
+                let updateFile:boolean = false;
                 for (let i:integer = 0; i < document.lineCount; i++) {
-                    let linetAt:string = document.lineAt(i);
+                    let linetAt = document.lineAt(i);
                     let line:string = linetAt.text;
                     line = line.trim();
-                    let range = linetAt.range;
-                    if (line.indexOf('Last\ Modified:') > -1) {
+                    if (line.indexOf("Last Modified:") > -1) {
+                        let time:string = line.replace("Last Modified:", "").trim();
+                        let oldTime = new Date(time);
+                        let curTime = new Date();
+                        updateFile = (((curTime - oldTime) / 1000) > 20) ? true : false;
+                        lastRange = document.lineAt(i).range;
                         break;
                     }
                 }
 
-                //replace the text and save the file again
-                setTimeout(function () {
-                    editor.edit(function (edit) {
-                        edit.replace(lastTimeRange, "Last Modified: " + createTimeStamp(new Date()));
-                    });
-                    document.save();
-                }, 200);
+                if (updateFile){
+                    //replace the text and save the file again
+                    setTimeout(function () {
+                        editor.edit(function (edit) {
+                            edit.replace(lastRange, "Last Modified: " + createTimeStamp(new Date()));
+                        });
+                        document.save();
+                    }, 200);
+                }
             }
             catch(error)
             {
                 console.error(error);
             }
         }, 200);
-
     }
 }
 
-// this }, 199 is called when your extension is deactivated
+// this is called when your extension is deactivated
 export function deactivate() {
 }

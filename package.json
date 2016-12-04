@@ -11,12 +11,12 @@
         "Other"
     ],
     "activationEvents": [
-        "onCommand:extension.updateTimeStamp"
+        "onCommand:extension.updateHeader"
     ],
     "main": "./out/src/extension",
     "contributes": {
         "commands": [{
-            "command": "extension.updateTimeStamp",
+            "command": "extension.updateHeader",
             "title": "UpdateTimeStamp"
         }]
     },
